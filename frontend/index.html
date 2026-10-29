@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager API Client</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>My Task List</h1>
+      <p>Connected to Express + MySQL</p>
+    </header>
+
+    <!-- Form to add a new task -->
+    <form id="task-form">
+      <input 
+        type="text" 
+        id="task-input" 
+        placeholder="What needs to be done?" 
+        required 
+        autocomplete="off"
+      >
+      <button type="submit" id="submit-btn">Add Task</button>
+    </form>
+
+    <!-- Error message container -->
+    <div id="error-message" class="hidden"></div>
+
+    <!-- The list where tasks will be displayed -->
+    <ul id="task-list">
+      <!-- Loading text will be replaced by JS -->
+      <li class="loading">Loading tasks...</li>
+    </ul>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
