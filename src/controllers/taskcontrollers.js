@@ -1,125 +1,101 @@
-// src/controllers/taskController.js
-// Validates input, calls the model, sends the HTTP response. No SQL here.
+// // src/controllers/taskcontrollers.js
+// const db = require('../models/taskModels');
 
-const taskModel = require('../models/taskModel');
+// exports.getAllTasks = async (req, res) => {
+//   try {
+//     const tasks = await db.getTasks();
+//     res.json(tasks);
+//   } catch (err) {
+//     console.error('DB Error (getAllTasks):', err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
-const taskController = {
-  getAllTasks: async (req, res, next) => {
-    try {
-      const tasks = await taskModel.findAll();
-      res.json(tasks);
-    } catch (err) {
-      next(err);
-    }
-  },
+// exports.createTask = async (req, res) => {
+//   try {
+//     const { title } = req.body;
+//     if (!title || title.trim() === '') {
+//       return res.status(400).json({ error: 'Title is required' });
+//     }
+//     const newTask = await db.addTask(title);
+//     res.status(201).json(newTask);
+//   } catch (err) {
+//     console.error('DB Error (createTask):', err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
-  getTaskById: async (req, res, next) => {
-    try {
-      const task = await taskModel.findById(req.params.id);
+// exports.updateTask = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { title, completed } = req.body;
+//     const updatedTask = await db.updateTask(id, title, completed ?? 0);
+//     res.json(updatedTask);
+//   } catch (err) {
+//     console.error('DB Error (updateTask):', err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
-      if (!task) {
-        return res.status(404).json({ error: 'Task not found' });
-      }
+// exports.deleteTask = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     await db.deleteTask(id);
+//     res.json({ message: 'Task deleted' });
+//   } catch (err) {
+//     console.error('DB Error (deleteTask):', err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
-      res.json(task);
-    } catch (err) {
-      next(err);
-    }
-  },
 
-  createTask: async (req, res, next) => {
-    try {
-      const { title, completed } = req.body;
+// src/controllers/taskcontrollers.js
+const taskModel = require('../models/taskModels');
 
-      if (!title || title.trim() === '') {
-        return res.status(400).json({ error: 'Title is required' });
-      }
-
-      const newTask = await taskModel.create({
-        title:     title.trim(),
-        completed: completed ?? false,
-      });
-
-      res.status(201).json(newTask);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  updateTask: async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { title, completed } = req.body;
-
-      if (!title || title.trim() === '') {
-        return res.status(400).json({ error: 'Title is required' });
-      }
-      if (typeof completed !== 'boolean') {
-        return res.status(400).json({ error: 'completed must be true or false' });
-      }
-
-      const updatedTask = await taskModel.update(id, {
-        title: title.trim(),
-        completed,
-      });
-
-      if (!updatedTask) {
-        return res.status(404).json({ error: 'Task not found' });
-      }
-
-      res.json(updatedTask);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  patchTask: async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { title, completed } = req.body;
-
-      if (title === undefined && completed === undefined) {
-        return res.status(400).json({
-          error: 'Provide title or completed to update',
-        });
-      }
-
-      if (title !== undefined && title.trim() === '') {
-        return res.status(400).json({ error: 'Title cannot be empty' });
-      }
-      if (completed !== undefined && typeof completed !== 'boolean') {
-        return res.status(400).json({ error: 'completed must be true or false' });
-      }
-
-      const fields = {};
-      if (title !== undefined) fields.title = title.trim();
-      if (completed !== undefined) fields.completed = completed;
-
-      const updatedTask = await taskModel.partialUpdate(id, fields);
-
-      if (!updatedTask) {
-        return res.status(404).json({ error: 'Task not found' });
-      }
-
-      res.json(updatedTask);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  deleteTask: async (req, res, next) => {
-    try {
-      const deleted = await taskModel.remove(req.params.id);
-
-      if (!deleted) {
-        return res.status(404).json({ error: 'Task not found' });
-      }
-
-      res.status(204).send();
-    } catch (err) {
-      next(err);
-    }
-  },
+exports.getAllTasks = async (req, res) => {
+  try {
+    const tasks = await taskModel.getTasks();
+    res.json(tasks);
+  } catch (err) {
+    console.error('DB Error (getAllTasks):', err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
-module.exports = taskController;
+exports.createTask = async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    const newTask = await taskModel.addTask(title);
+    res.status(201).json(newTask);
+  } catch (err) {
+    console.error('DB Error (createTask):', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, completed } = req.body;
+
+    const updatedTask = await taskModel.updateTask(id, { title, completed });
+    res.json(updatedTask);
+  } catch (err) {
+    console.error('DB Error (updateTask):', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await taskModel.deleteTask(id);
+    res.json({ message: 'Task deleted' });
+  } catch (err) {
+    console.error('DB Error (deleteTask):', err);
+    res.status(500).json({ error: err.message });
+  }
+};

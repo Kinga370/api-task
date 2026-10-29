@@ -1,74 +1,38 @@
-// src/models/taskModel.js
-// Database queries only. No req, no res, no HTTP status codes.
+// src/models/taskModels.js
+const db = require('../db'); // your db.js sets up mysql2/promise pool
 
-const pool = require('../db');
+// Get all tasks
+async function getTasks() {
+  const [rows] = await db.query('SELECT * FROM tasks');
+  return rows;
+}
 
-const taskModel = {
-  findAll: async () => {
-    const [rows] = await pool.query(
-      'SELECT * FROM tasks ORDER BY created_at DESC'
-    );
-    return rows;
-  },
+// Add a new task
+async function addTask(title) {
+  const [result] = await db.query(
+    'INSERT INTO tasks (title, completed) VALUES (?, ?)',
+    [title, 0]
+  );
+  return { id: result.insertId, title, completed: 0 };
+}
 
-  findById: async (id) => {
-    const [rows] = await pool.query(
-      'SELECT * FROM tasks WHERE id = ?',
-      [id]
-    );
-    return rows[0] || null;
-  },
+// Update a task
+async function updateTask(id, title, completed = 0) {
+  await db.query(
+    'UPDATE tasks SET title = ?, completed = ? WHERE id = ?',
+    [title, completed, id]
+  );
+  return { id, title, completed };
+}
 
-  create: async ({ title, completed = false }) => {
-    const [result] = await pool.query(
-      'INSERT INTO tasks (title, completed) VALUES (?, ?)',
-      [title, completed]
-    );
-    return taskModel.findById(result.insertId);
-  },
+// Delete a task
+async function deleteTask(id) {
+  await db.query('DELETE FROM tasks WHERE id = ?', [id]);
+}
 
-  update: async (id, { title, completed }) => {
-    const [result] = await pool.query(
-      'UPDATE tasks SET title = ?, completed = ? WHERE id = ?',
-      [title, completed, id]
-    );
-    if (result.affectedRows === 0) return null;
-    return taskModel.findById(id);
-  },
-
-  partialUpdate: async (id, fields) => {
-    const updates = [];
-    const values = [];
-
-    if (fields.title !== undefined) {
-      updates.push('title = ?');
-      values.push(fields.title);
-    }
-    if (fields.completed !== undefined) {
-      updates.push('completed = ?');
-      values.push(fields.completed);
-    }
-
-    if (updates.length === 0) return taskModel.findById(id);
-
-    values.push(id);
-
-    const [result] = await pool.query(
-      `UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`,
-      values
-    );
-
-    if (result.affectedRows === 0) return null;
-    return taskModel.findById(id);
-  },
-
-  remove: async (id) => {
-    const [result] = await pool.query(
-      'DELETE FROM tasks WHERE id = ?',
-      [id]
-    );
-    return result.affectedRows > 0;
-  },
+module.exports = {
+  getTasks,
+  addTask,
+  updateTask,
+  deleteTask,
 };
-
-module.exports = taskModel;
